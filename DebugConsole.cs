@@ -110,10 +110,12 @@ class DebugMod : GameModification
         {
          if (UnityEngine.Input.GetKeyDown(KeyCode.F1) || UnityEngine.Input.GetKeyDown(KeyCode.BackQuote))
         {
-        if (_canvas != null)
-        {
-            _canvas.gameObject.SetActive(!_canvas.gameObject.activeSelf);
-           //Debug.Log("[DebugConsole] F1 pressed → toggling console");
+                if (_canvas != null)
+                {
+                    _canvas.gameObject.SetActive(!_canvas.gameObject.activeSelf);
+         //Debug.Log("[DebugConsole] F1 pressed → toggling console looooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooong");
+           //Debug.Log("[DebugConsole] F1 pressed → toggling console ");
+           
         }
          }
     }       // dequeue that shit
@@ -212,6 +214,9 @@ class DebugMod : GameModification
         panelRT.anchorMax = new Vector2(1f, 0.25f); // 25% height
         panelRT.offsetMin = Vector2.zero;
         panelRT.offsetMax = Vector2.zero;
+        //constants
+        const float sideBarWidth = 120f;
+        const float pad = 2f;
 
         // Scroll view
         var scrollGO = new GameObject("ScrollView");
@@ -220,10 +225,8 @@ class DebugMod : GameModification
         var scrollRT = scrollGO.GetComponent<RectTransform>();
         scrollRT.anchorMin = new Vector2(0f, 0f);
         scrollRT.anchorMax = new Vector2(1f, 1f);
-        const float topBarHeight = 20f;
-        const float pad = 8f;
-        scrollRT.offsetMin = new Vector2(pad, pad); // leave room for top bar
-        scrollRT.offsetMax = new Vector2(-pad, -(pad + topBarHeight));
+        scrollRT.offsetMin = new Vector2(pad, pad); 
+        scrollRT.offsetMax = new Vector2(-(sideBarWidth + 2f * pad), -pad); // leave room for side bar
 
         // Viewport
         var viewportGO = new GameObject("Viewport");
@@ -253,7 +256,7 @@ class DebugMod : GameModification
         textRT.anchorMin = new Vector2(0, 1);
         textRT.anchorMax = new Vector2(1, 1);
         textRT.pivot = new Vector2(0.5f, 1);
-        textRT.offsetMin = new Vector2(8, 0);
+        textRT.offsetMin = new Vector2(8, 8);
         textRT.offsetMax = new Vector2(-8, 0);
 
         // Let TEXT drive its own height
@@ -272,22 +275,32 @@ class DebugMod : GameModification
         // Fix to adjust character height always equating to 0, don't copy this lel
         _contentRT = textRT;
 
-        // Top bar, autoscroll and clear
-        var topBar = new GameObject("TopBar");
-        topBar.transform.SetParent(panel.transform, false);
-        var topBarRT = topBar.AddComponent<RectTransform>();
-        topBarRT.anchorMin = new Vector2(0, 1);
-        topBarRT.anchorMax = new Vector2(1, 1);
-        topBarRT.pivot = new Vector2(0.5f, 1);
-        topBarRT.sizeDelta = new Vector2(0, topBarHeight);
-        topBar.transform.SetAsLastSibling();
-        _clearBtn = CreateButton(topBar.transform, "Clear", new Vector2(-10, -8), () =>
+        // Side bar, autoscroll and clear
+        var sideBar = new GameObject("sideBar");
+        sideBar.transform.SetParent(panel.transform, false);
+        var sidebarImg = sideBar.AddComponent<Image>(); sidebarImg.color = new Color(0f, 0f, 0f, 0.35f);
+        var sideBarRT = sideBar.GetComponent<RectTransform>();
+        sideBarRT.anchorMin = new Vector2(1f, 0f);
+        sideBarRT.anchorMax = new Vector2(1, 1);
+        sideBarRT.offsetMin = new Vector2(-sideBarWidth - pad, pad); //left and buttom
+        sideBarRT.offsetMax = new Vector2(-pad, -pad); // right and teop
+
+        var verticalBar = sideBar.AddComponent<VerticalLayoutGroup>();
+        verticalBar.childAlignment = TextAnchor.UpperCenter;
+        verticalBar.childControlHeight = false;
+        verticalBar.childControlWidth = true;
+        verticalBar.childForceExpandWidth = true;
+        verticalBar.childForceExpandHeight = false;
+        verticalBar.spacing = 6f;
+        verticalBar.padding = new RectOffset(6, 6, 6, 6);
+
+        _clearBtn = CreateButton(sideBar.transform, "Clear", new Vector2(-10, -8), () =>
         {
             _sb.Length = 0;
             setText("");
         }).Item1;
 
-        (_autoScrollBtn, _autoScrollImg) = CreateButton(topBar.transform, "AutoScroll", new Vector2(-75, -8), () =>
+        (_autoScrollBtn, _autoScrollImg) = CreateButton(sideBar.transform, "AutoScroll", new Vector2(-75, -8), () =>
         {
             _autoScroll = !_autoScroll;
             UpdateAutoScrollVisual(); //calls to update the autoscroll button color
