@@ -75,9 +75,10 @@ class DebugMod : GameModification
         private RectTransform _contentRT;
         private TMP_Text _text;
         private Button _clearBtn;
+        private Button _jmpBtn;
         //Buffering
-        private readonly ConcurrentQueue<(string msg, string stack, LogType type)> _queue
-            = new ConcurrentQueue<(string, string, LogType)>();
+    private readonly ConcurrentQueue<(string msg, string stack, LogType type)> _queue
+        = new ConcurrentQueue<(string, string, LogType)>();
         private readonly StringBuilder _sb = new StringBuilder(8 * 1024);
 
         //Settings, character maximum 
@@ -294,13 +295,19 @@ class DebugMod : GameModification
         verticalBar.spacing = 6f;
         verticalBar.padding = new RectOffset(6, 6, 6, 6);
 
-        _clearBtn = CreateButton(sideBar.transform, "Clear", new Vector2(-10, -8), () =>
+        _clearBtn = CreateButton(sideBar.transform, "Clear", () =>
         {
             _sb.Length = 0;
             setText("");
         }).Item1;
 
-        (_autoScrollBtn, _autoScrollImg) = CreateButton(sideBar.transform, "AutoScroll", new Vector2(-75, -8), () =>
+
+        _jmpBtn = CreateButton(sideBar.transform, "Jump to Bottom", () =>
+        {
+            Canvas.ForceUpdateCanvases(); _scrollRect.verticalNormalizedPosition = 0f;
+        }).Item1;
+
+        (_autoScrollBtn, _autoScrollImg) = CreateButton(sideBar.transform, "AutoScroll", () =>
         {
             _autoScroll = !_autoScroll;
             UpdateAutoScrollVisual(); //calls to update the autoscroll button color
@@ -328,7 +335,7 @@ class DebugMod : GameModification
     }
 }
 
-       private (Button, Image) CreateButton(Transform parent, string label, Vector2 anchoredOffset, Action onClick)
+       private (Button, Image) CreateButton(Transform parent, string label, Action onClick)
     {
         var go = new GameObject(label + "Button");
         go.transform.SetParent(parent, false);
@@ -342,7 +349,11 @@ class DebugMod : GameModification
         rt.anchorMin = new Vector2(1, 1);     // top-right anchor
         rt.anchorMax = new Vector2(1, 1);
         rt.pivot = new Vector2(1, 1);         // pivot also top-right
-        rt.anchoredPosition = anchoredOffset; // negative X values probs
+        rt.sizeDelta = new Vector2(0, 22); //for now, this forces the height to be 22 pxs. if this becomes an issue on higher/lower monitors, i could setup a proper ui scaler
+
+        var preferredLayout = go.AddComponent<LayoutElement>();
+        preferredLayout.preferredHeight = 22;
+        preferredLayout.minHeight = 20;
 
         var btn = go.AddComponent<Button>();
         btn.onClick.AddListener(() => onClick?.Invoke());
