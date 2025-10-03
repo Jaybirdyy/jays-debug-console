@@ -72,10 +72,11 @@ class DebugMod : GameModification
         private Image _autoScrollImg;
         private Canvas _canvas;
         private ScrollRect _scrollRect;
-        private RectTransform _contentRT;
+
         private TMP_Text _text;
         private Button _clearBtn;
         private Button _jmpBtn;
+        private Button _copyBtn;
         //Buffering
     private readonly ConcurrentQueue<(string msg, string stack, LogType type)> _queue
         = new ConcurrentQueue<(string, string, LogType)>();
@@ -273,9 +274,6 @@ class DebugMod : GameModification
         _scrollRect.movementType = ScrollRect.MovementType.Clamped;
         _scrollRect.inertia = true;
 
-        // Fix to adjust character height always equating to 0, don't copy this lel
-        _contentRT = textRT;
-
         // Side bar, autoscroll and clear
         var sideBar = new GameObject("sideBar");
         sideBar.transform.SetParent(panel.transform, false);
@@ -314,6 +312,21 @@ class DebugMod : GameModification
         });
          UpdateAutoScrollVisual();
 
+        _copyBtn = CreateButton(sideBar.transform, "Copy to Clipboard", () =>
+        {
+            try
+            {
+                string plainLog = System.Text.RegularExpressions.Regex.Replace(_sb.ToString(), "<.*?>", string.Empty);
+                GUIUtility.systemCopyBuffer = plainLog;
+                //Debug.Log("[DebugConsole] Log copied to clipboard.");
+            }
+            catch (Exception ex)
+            {
+                Debug.LogWarning($"Clipboard copy failed, contact mod developer if required: {ex.Message}");
+            }
+
+        }).Item1;
+
         // Final layout
         Canvas.ForceUpdateCanvases();
         LayoutRebuilder.ForceRebuildLayoutImmediate(textRT);
@@ -345,15 +358,14 @@ class DebugMod : GameModification
         img.color = new Color(0.2f, 0.2f, 0.2f, 0.9f);
 
         var rt = go.GetComponent<RectTransform>();
-        rt.sizeDelta = new Vector2(60, 20);  
         rt.anchorMin = new Vector2(1, 1);     // top-right anchor
         rt.anchorMax = new Vector2(1, 1);
         rt.pivot = new Vector2(1, 1);         // pivot also top-right
-        rt.sizeDelta = new Vector2(0, 22); //for now, this forces the height to be 22 pxs. if this becomes an issue on higher/lower monitors, i could setup a proper ui scaler
+        rt.sizeDelta = new Vector2(0, 20); //for now, this forces the height to be 20 pxs. if this becomes an issue on higher/lower res monitors, i could setup a proper ui scaler
 
         var preferredLayout = go.AddComponent<LayoutElement>();
-        preferredLayout.preferredHeight = 22;
-        preferredLayout.minHeight = 20;
+        preferredLayout.preferredHeight = 20;
+        preferredLayout.minHeight = 18;
 
         var btn = go.AddComponent<Button>();
         btn.onClick.AddListener(() => onClick?.Invoke());
