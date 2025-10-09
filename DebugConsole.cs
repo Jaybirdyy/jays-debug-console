@@ -12,12 +12,12 @@ class DebugMod : GameModification
 
     public DebugMod(Mod p_mod) : base(p_mod)
     {
-        Debug.Log($"Registering mod: {p_mod.name}");
+        Debug.Log($"Registering mod: {p_mod.Name}");
     }
 
     public override void OnModInitialization(Mod p_mod)
     {
-        Debug.Log($"Initializing mod: {p_mod.name}");
+        Debug.Log($"Initializing mod: {p_mod.Name}");
 
         mod = p_mod;
 
@@ -26,16 +26,16 @@ class DebugMod : GameModification
 
     public override void OnModUnloaded()
     {
-        Debug.Log($"Unloading mod: {mod.name}");
+        Debug.Log($"Unloading mod: {mod.Name}");
 
         _harmony?.UnpatchAll(_harmony.Id);
     }
 
     void PatchGame()
     {
-        Debug.Log($"Applying patch from mod: {mod.name}");
+        Debug.Log($"Applying patch from mod: {mod.Name}");
 
-        _harmony = new Harmony("com.hexofsteel." + mod.name);
+        _harmony = new Harmony("com.hexofsteel." + mod.Name);
         _harmony.PatchAll();
          DebugConsoleBootstrap.EnsureExists();
     }
